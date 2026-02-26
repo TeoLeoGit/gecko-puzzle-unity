@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class Game : MonoBehaviour
 {
+    [SerializeField] private LayerMask gridLayer; // assign in inspector
     [Header("References")]
     public GeckoController gecko;
     public Transform gridRoot;     // Parent of grid cells (7x7)
+
+    public Grid gridComponent;
     public Camera mainCamera;
 
     private Vector2 dragStart;
@@ -31,6 +35,7 @@ public class Game : MonoBehaviour
         origin = new Vector3(-cellSize / 2f, -cellSize / 2f, 0);
 
         InitGridVisual();
+        gecko.Init();
     }
 
     void OnEnable()
@@ -43,16 +48,33 @@ public class Game : MonoBehaviour
         GameEvents.OnExitCreated -= AddExit;
     }
 
-    void Update()
+    private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-            OnTouchStart(Input.mousePosition);
+        if (Mouse.current != null)
+        {
+            if (Mouse.current.leftButton.wasPressedThisFrame) 
+                OnTouchStart(Mouse.current.position.ReadValue());
 
-        if (Input.GetMouseButton(0))
-            OnTouchMove(Input.mousePosition);
+            if (Mouse.current.leftButton.isPressed)
+                OnTouchMove(Mouse.current.position.ReadValue());
 
-        if (Input.GetMouseButtonUp(0))
-            OnTouchEnd();
+            if (Mouse.current.leftButton.wasReleasedThisFrame)
+                OnTouchEnd();
+        }
+
+        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
+        {
+            var touch = Touchscreen.current.primaryTouch;
+
+            if (touch.press.wasPressedThisFrame)
+                OnTouchStart(touch.position.ReadValue());
+
+            if (touch.press.isPressed)
+                OnTouchMove(touch.position.ReadValue());
+
+            if (touch.press.wasReleasedThisFrame)
+                OnTouchEnd();
+        }
 
         if (targetWorldPos.HasValue)
             UpdateDragGecko(Time.deltaTime);
@@ -62,6 +84,7 @@ public class Game : MonoBehaviour
 
     void InitGridVisual()
     {
+        gridComponent.Init();
         for (int y = 0; y < rows; y++)
         {
             for (int x = 0; x < cols; x++)
@@ -81,12 +104,14 @@ public class Game : MonoBehaviour
 
     void OnTouchStart(Vector2 screenPos)
     {
+        Debug.Log("Touch start at: " + screenPos);
         dragStart = screenPos;
         Vector2Int? point = GetPointAtScreenPos(screenPos);
-
+        Debug.Log("Touched point: " + (point.HasValue ? point.Value.ToString() : "None"));
         if (point.HasValue)
         {
             ChooseMoveNode(point.Value);
+            Debug.Log("Chosen move node at: " + point.Value);
             MoveGeckoToPoint(point.Value);
         }
     }
@@ -224,21 +249,24 @@ public class Game : MonoBehaviour
 
     Vector2Int? GetPointAtScreenPos(Vector2 screenPos)
     {
-        Vector3 world = ScreenToWorld(screenPos);
-        return FindCellAt(world);
+        return FindCellAt(screenPos);
     }
 
-    Vector2Int? FindCellAt(Vector3 worldPos)
+    Vector2Int? FindCellAt(Vector2 screenPos)
     {
-        Vector3 local = gridRoot.InverseTransformPoint(worldPos);
+        Ray ray = mainCamera.ScreenPointToRay(screenPos);
 
-        int x = Mathf.FloorToInt((local.x - origin.x) / cellSize);
-        int y = Mathf.FloorToInt((local.y - origin.y) / cellSize);
+        if (Physics.Raycast(ray, out RaycastHit hit, 100f, gridLayer))
+        {
+            var cell = hit.collider.GetComponent<GridCell>();
+            if (cell != null)
+            {
+                Debug.Log("Grid position: " + cell.GridPos);
+                return cell.GridPos;
+            }
+        }
 
-        if (x < 0 || y < 0 || x >= cols || y >= rows)
-            return null;
-
-        return new Vector2Int(x, y);
+        return null;
     }
 
     Vector3 GridToWorld(Vector2Int p)
@@ -249,11 +277,18 @@ public class Game : MonoBehaviour
 
     Vector3 ScreenToWorld(Vector2 screenPos)
     {
-        Vector3 world = mainCamera.ScreenToWorldPoint(
-            new Vector3(screenPos.x, screenPos.y, 10f)
-        );
-        world.z = 0;
-        return world;
+        Vector3 sp = new Vector3(screenPos.x, screenPos.y, 0f);
+
+        if (Camera.main.orthographic)
+        {
+            sp.z = 0f;
+        }
+        else
+        {
+            sp.z = Mathf.Abs(Camera.main.transform.position.z);
+        }
+
+        return Camera.main.ScreenToWorldPoint(sp);
     }
 
     #endregion

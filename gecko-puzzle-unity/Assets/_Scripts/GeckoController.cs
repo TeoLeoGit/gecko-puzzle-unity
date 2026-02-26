@@ -60,7 +60,7 @@ public class GeckoController : MonoBehaviour
 
     #region Unity Lifecycle
 
-    void Awake()
+    public void Init()
     {
         MarkOccupiedOnTrail();
 

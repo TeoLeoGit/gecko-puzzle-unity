@@ -13,8 +13,8 @@ public class Data
         {0, 0, 0, 0, 0, 0, 0},
     };
 
-    public static float CellSize = 100f;
-    public static float MoveSpeed = 800f;
+    public static float CellSize = 1f;
+    public static float MoveSpeed = 1f;
 
     public static int Rows => Grid.GetLength(0);
     public static int Cols => Grid.GetLength(1);

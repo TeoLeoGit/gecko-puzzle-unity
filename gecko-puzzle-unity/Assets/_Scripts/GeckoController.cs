@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GeckoController : MonoBehaviour
@@ -39,12 +40,12 @@ public class GeckoController : MonoBehaviour
     };
 
     private List<Transform> segments = new();
-    private List<Transform> legSegments = new();
     //private List<SkeletonAnimation> legSkeletons = new();
     private List<SegmentTarget> segmentTargets = new();
 
     private Transform moveNode;
     private Transform endNode;
+    private Transform nodeSegments;
 
     private bool isMovingHead = true;
     private bool isMoving = false;
@@ -64,23 +65,45 @@ public class GeckoController : MonoBehaviour
     {
         MarkOccupiedOnTrail();
 
+        nodeSegments = transform.Find("Segments");
+
+        if (nodeSegments == null)
+        {
+            Debug.LogError("segments object not found!");
+            return;
+        }
+
+        // Collect segments from parts (excluding first & last)
         for (int i = 1; i < parts.Count - 1; i++)
         {
-            foreach (Transform child in parts[i])
+            foreach (Transform segment in parts[i])
             {
-                segments.Add(child);
-
-                // var skeleton = child.GetComponentInChildren<SkeletonAnimation>();
-                // if (skeleton != null)
-                // {
-                //     legSegments.Add(child);
-                //     legSkeletons.Add(skeleton);
-                //     skeleton.timeScale = 0;
-                // }
+                segments.Add(segment);
             }
         }
 
+        // Re-parent segments to nodeSegments (keep world position)
+        foreach (var segment in segments)
+        {
+            segment.SetParent(nodeSegments, true);
+        }
+
         InitSegmentTargets();
+
+        // Reverse sibling order (like Cocos setSiblingIndex)
+        for (int i = 0; i < segments.Count; i++)
+        {
+            segments[i].SetSiblingIndex(segments.Count - 1 - i);
+        }
+        InitSegmentTargets();
+    }
+
+    void Start()
+    {
+        movePoint = headPoint;
+        endPoint = tailPoint;
+        moveNode = headNode;
+        endNode = tailNode;
     }
 
     void Update()
@@ -169,7 +192,7 @@ public class GeckoController : MonoBehaviour
                 {
                     Vector3 localOffset = new Vector3(
                         0,
-                        dy > 0 ? (54 - i * 20) : (-54 + i * 20),
+                        dy > 0 ? (0.45f - i * 0.15f) : (-0.45f + i * 0.15f),
                         0
                     );
 
@@ -189,7 +212,7 @@ public class GeckoController : MonoBehaviour
                 for (int i = 0; i < segmentsEachPart; i++)
                 {
                     Vector3 localOffset = new Vector3(
-                        dx > 0 ? (54 - i * 20) : (-54 + i * 20),
+                        dx > 0 ? (0.45f - i * 0.15f) : (-0.45f + i * 0.15f),
                         0,
                         0
                     );
@@ -216,7 +239,7 @@ public class GeckoController : MonoBehaviour
         Transform parent
     )
     {
-        float half = 50f;
+        float half = 0.5f * Data.CellSize;
         List<SegmentTarget> targets = new List<SegmentTarget>();
 
         float dx = target.x - from.x;

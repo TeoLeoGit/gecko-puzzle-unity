@@ -275,22 +275,6 @@ public class Game : MonoBehaviour
         return gridRoot.GetChild(index).position;
     }
 
-    Vector3 ScreenToWorld(Vector2 screenPos)
-    {
-        Vector3 sp = new Vector3(screenPos.x, screenPos.y, 0f);
-
-        if (Camera.main.orthographic)
-        {
-            sp.z = 0f;
-        }
-        else
-        {
-            sp.z = Mathf.Abs(Camera.main.transform.position.z);
-        }
-
-        return Camera.main.ScreenToWorldPoint(sp);
-    }
-
     #endregion
 
     #region Exits

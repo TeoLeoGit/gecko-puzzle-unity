@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
+using System;
 
 public class GeckoController : MonoBehaviour
 {
@@ -10,6 +10,7 @@ public class GeckoController : MonoBehaviour
     public Transform tailNode;
     public Transform legsNode;
 
+    [Serializable]
     struct SegmentTarget
     {
         public Vector3 pos;
@@ -31,7 +32,7 @@ public class GeckoController : MonoBehaviour
     private Vector2Int backwardPoint1;
     private Vector2Int backwardPoint2;
 
-    [SerializeField] private List<Vector2Int> trail = new()
+    private List<Vector2Int> trail = new()
     {
         new Vector2Int(0,0),
         new Vector2Int(0,1),
@@ -39,9 +40,9 @@ public class GeckoController : MonoBehaviour
         new Vector2Int(0,3),
     };
 
-    private List<Transform> segments = new();
+    [SerializeField] private List<Transform> segments = new();
     //private List<SkeletonAnimation> legSkeletons = new();
-    private List<SegmentTarget> segmentTargets = new();
+    [SerializeField] private List<SegmentTarget> segmentTargets = new();
 
     private Transform moveNode;
     private Transform endNode;
@@ -52,7 +53,7 @@ public class GeckoController : MonoBehaviour
     private bool isBackwards = false;
     private bool isEnterExit = false;
 
-    private const int segmentsEachPart = 6;
+    private const int segmentsEachPart = 7;
 
     public Vector2Int MovePoint => movePoint;
     public Transform MoveNode => moveNode;
@@ -87,8 +88,6 @@ public class GeckoController : MonoBehaviour
         {
             segment.SetParent(nodeSegments, true);
         }
-
-        InitSegmentTargets();
 
         // Reverse sibling order (like Cocos setSiblingIndex)
         for (int i = 0; i < segments.Count; i++)
@@ -404,13 +403,13 @@ public class GeckoController : MonoBehaviour
     }
 
     public void SetBackwardsMovement(bool isBackward)
-{
-    isBackwards = isBackward;
+    {
+        isBackwards = isBackward;
 
-    int n = trail.Count - 1;
-    backwardPoint1 = trail[n];
-    backwardPoint2 = trail[n - 1];
-}
+        int n = trail.Count - 1;
+        backwardPoint1 = trail[n];
+        backwardPoint2 = trail[n - 1];
+    }
 
     #endregion
 
@@ -533,12 +532,12 @@ public class GeckoController : MonoBehaviour
             float angle = segment.eulerAngles.z + 180f;
             segment.rotation = Quaternion.Euler(0, 0, angle);
 
-            Vector3 scale = segment.localScale;
-            segment.localScale = new Vector3(
-                -scale.x,
-                -scale.y,
-                scale.z
-            );
+            // Vector3 scale = segment.localScale;
+            // segment.localScale = new Vector3(
+            //     -scale.x,
+            //     -scale.y,
+            //     scale.z
+            // );
         }
     }
 

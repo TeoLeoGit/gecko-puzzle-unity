@@ -31,7 +31,7 @@ public class GeckoController : MonoBehaviour
     private Vector2Int backwardPoint1;
     private Vector2Int backwardPoint2;
 
-    private List<Vector2Int> trail = new()
+    [SerializeField] private List<Vector2Int> trail = new()
     {
         new Vector2Int(0,0),
         new Vector2Int(0,1),
@@ -383,6 +383,16 @@ public class GeckoController : MonoBehaviour
 
         movePoint = targetPoint;
         trail[0] = targetPoint;
+        if (isMovingHead)
+        {
+            headPoint = trail[0];
+            tailPoint = trail[^1];
+            
+        }
+        else {
+            tailPoint = trail[0];
+            headPoint = trail[^1];
+        }
 
         MarkOccupiedOnTrail();
     }

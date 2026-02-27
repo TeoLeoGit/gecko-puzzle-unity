@@ -104,14 +104,12 @@ public class Game : MonoBehaviour
 
     void OnTouchStart(Vector2 screenPos)
     {
-        Debug.Log("Touch start at: " + screenPos);
         dragStart = screenPos;
         Vector2Int? point = GetPointAtScreenPos(screenPos);
-        Debug.Log("Touched point: " + (point.HasValue ? point.Value.ToString() : "None"));
         if (point.HasValue)
         {
             ChooseMoveNode(point.Value);
-            Debug.Log("Chosen move node at: " + point.Value);
+            //Debug.Log("Chosen move node at: " + point.Value);
             MoveGeckoToPoint(point.Value);
         }
     }
@@ -184,7 +182,6 @@ public class Game : MonoBehaviour
     void MoveGeckoToPoint(Vector2Int targetPoint)
     {
         if (Data.Grid[targetPoint.y, targetPoint.x] == 1) return;
-
         if (gecko.MovePoint == targetPoint) return;
 
         if (!activeTarget.HasValue)
@@ -231,9 +228,9 @@ public class Game : MonoBehaviour
         gecko.UpdateTrail(p);
         gecko.UpdateSegmentTargets();
 
-        BaseExit exit = FindExitAtPoint(p);
-        if (exit != null)
-            RemoveGeckoAtExit(exit);
+        // BaseExit exit = FindExitAtPoint(p);
+        // if (exit != null)
+        //     RemoveGeckoAtExit(exit);
     }
 
     void RemoveGeckoAtExit(BaseExit exit)
@@ -261,7 +258,6 @@ public class Game : MonoBehaviour
             var cell = hit.collider.GetComponent<GridCell>();
             if (cell != null)
             {
-                Debug.Log("Grid position: " + cell.GridPos);
                 return cell.GridPos;
             }
         }

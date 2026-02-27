@@ -14,7 +14,7 @@ public class Data
     };
 
     public static float CellSize = 1f;
-    public static float MoveSpeed = 1f;
+    public static float MoveSpeed = 10f;
 
     public static int Rows => Grid.GetLength(0);
     public static int Cols => Grid.GetLength(1);
